@@ -46,6 +46,7 @@ class UserListPageState extends ConsumerState<UserListPage> {
             padding: const EdgeInsets.all(16.0),
             child: TextField(
               decoration: InputDecoration(
+                hoverColor: const Color.fromARGB(137, 76, 0, 0),
                 labelText: 'Search',
                 prefixIcon: Icon(Icons.search),
                 border: OutlineInputBorder(),

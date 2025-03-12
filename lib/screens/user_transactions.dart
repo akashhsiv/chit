@@ -1,5 +1,6 @@
 import 'package:chit/models/chit_model.dart';
 import 'package:chit/providers/chit_provider.dart';
+import 'package:chit/screens/add_transaction.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -100,10 +101,22 @@ class TransactionListPageState extends ConsumerState<TransactionListPage> {
             padding: const EdgeInsets.all(16.0),
             child: Align(
               alignment: Alignment.topRight,
-              child: Text(
-                'Total Amount: ₹$totalAmount',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-              ),
+              child:
+                  totalAmount == 0
+                      ? SizedBox.shrink()
+                      : 
+                         Column(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            Text(
+                              'Total Amount: ₹$totalAmount',
+                              style: TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
             ),
           ),
           Expanded(
@@ -115,10 +128,9 @@ class TransactionListPageState extends ConsumerState<TransactionListPage> {
                       itemBuilder: (context, index) {
                         final transaction = sortedTransactions[index];
                         return Card(
+                          color: const Color.fromARGB(255, 205, 179, 221),
                           child: ListTile(
-                            title: Text(
-                              'Amount: ₹${transaction.amount}',
-                            ),
+                            title: Text('Amount: ₹${transaction.amount}'),
                             subtitle: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
@@ -137,65 +149,15 @@ class TransactionListPageState extends ConsumerState<TransactionListPage> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          _showAddTransactionDialog(context, ref);
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => AddTransaction(chitId: widget.chitId),
+            ),
+          );
         },
         child: Icon(Icons.playlist_add_outlined),
       ),
-    );
-  }
-
-  void _showAddTransactionDialog(BuildContext context, WidgetRef ref) {
-    final TextEditingController amountController = TextEditingController();
-    final TextEditingController descriptionController = TextEditingController();
-
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: Text('Add New Transaction'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: amountController,
-                decoration: InputDecoration(labelText: 'Amount'),
-                keyboardType: TextInputType.number,
-              ),
-              TextField(
-                controller: descriptionController,
-                decoration: InputDecoration(labelText: 'Description'),
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                final int? amount = int.tryParse(amountController.text);
-                final String description = descriptionController.text.trim();
-
-                if (amount != null && amount > 0 && description.isNotEmpty) {
-                  ref
-                      .read(transactionProvider.notifier)
-                      .addTransaction(
-                        ChitTransaction(
-                          chitId: widget.chitId,
-                          amount: amount,
-                          description: description,
-                          transactionDate: DateTime.now().toIso8601String(),
-                        ),
-                      );
-                  Navigator.pop(context);
-                } else {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Please enter valid details!')),
-                  );
-                }
-              },
-              child: Text('Add'),
-            ),
-          ],
-        );
-      },
     );
   }
 }

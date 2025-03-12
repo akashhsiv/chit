@@ -13,6 +13,7 @@ class AddUserPage extends ConsumerWidget {
     final nameController = TextEditingController();
     final phoneNumberController = TextEditingController();
     final RegExp phoneNumberRegex = RegExp(r'^[6-9]\d{9}$');
+    final RegExp alphabetRegex = RegExp(r'^[a-zA-Z ]+$');
 
     return Scaffold(
       appBar: AppBar(title: Text("Add User")),
@@ -28,6 +29,8 @@ class AddUserPage extends ConsumerWidget {
                 validator: (value) {
                   if (value == null || value.trim().isEmpty) {
                     return 'Please enter a name';
+                  } else if (!alphabetRegex.hasMatch(value)) {
+                    return " Enter the Correct name";
                   }
                   return null;
                 },
@@ -40,7 +43,14 @@ class AddUserPage extends ConsumerWidget {
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Please enter a phone number';
-                  } else if (!phoneNumberRegex.hasMatch(value)) {
+                  } else if (!
+                  /// The `phoneNumberRegex` variable is a regular expression used to
+                  /// validate phone numbers. In this case, the regular expression
+                  /// `RegExp(r'^[6-9]\d{9}$')` is checking if the phone number entered by
+                  /// the user starts with a digit between 6 and 9 (inclusive) followed by
+                  /// exactly 9 digits. This ensures that the phone number is a valid
+                  /// 10-digit number starting with a digit between 6 and 9.
+                  phoneNumberRegex.hasMatch(value)) {
                     return 'Enter a valid 10-digit phone number';
                   }
                   return null;
@@ -56,7 +66,12 @@ class AddUserPage extends ConsumerWidget {
                         .read(chitProvider.notifier)
                         .addChit(name, phoneNumber);
 
-                    ScaffoldMessenger.of(context).showSnackBar(
+                    ScaffoldMessenger.of(
+                      /// In the provided Dart code snippet, the `context` parameter
+                      /// is being used in the `build` method of the `AddUserPage`
+                      /// widget.
+                      context,
+                    ).showSnackBar(
                       SnackBar(content: Text('User added successfully!')),
                     );
 

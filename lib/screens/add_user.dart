@@ -1,3 +1,5 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'package:chit/providers/chit_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -16,20 +18,9 @@ class _AddUserPageState extends ConsumerState<AddUserPage> {
   final RegExp phoneNumberRegex = RegExp(r'^[6-9]\d{9}$');
   final RegExp alphabetRegex = RegExp(r'^[a-zA-Z ]+$');
 
-  String phoneMessage = '';
-  Color phoneMessageColor = Colors.red; // Default color
-
-  @override
-  void initState() {
-    super.initState();
-    phoneNumberController.addListener(() {
-      setState(() {
-        phoneMessage = "${phoneNumberController.text.length}/10 digits entered";
-        phoneMessageColor =
-            phoneNumberController.text.length == 10 ? Colors.green : Colors.red;
-      });
-    });
-  }
+  bool nameStartedTyping = false;
+  bool phoneNumberStartedTyping = false;
+  Color phoneMessageColor = Colors.red;
 
   @override
   void dispose() {
@@ -38,94 +29,160 @@ class _AddUserPageState extends ConsumerState<AddUserPage> {
     super.dispose();
   }
 
+  void clearValidationErrors() {
+    if (formKey.currentState != null) {
+      formKey.currentState!.validate();
+    }
+  }
+
+  void showOverlaySnackBar(BuildContext context, String message) {
+    final overlay = Overlay.of(context);
+    final overlayEntry = OverlayEntry(
+      builder:
+          (context) => Positioned(
+            bottom: 10, // Adjust position
+            left: 16,
+            right: 16,
+            child: Material(
+              color: Colors.transparent,
+              child: Container(
+                padding: EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.black87,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  message,
+                  style: TextStyle(color: Colors.white),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            ),
+          ),
+    );
+
+    overlay.insert(overlayEntry);
+
+    Future.delayed(Duration(seconds: 2), () {
+      overlayEntry.remove();
+    });
+  }
+
+
+  @override
+  void initState() {
+    super.initState();
+    phoneNumberController.addListener(() {
+      setState(() {
+        phoneMessageColor =
+            phoneNumberController.text.length == 10
+                ? Colors.green
+                : (phoneNumberController.text.isEmpty
+                    ? Colors.red
+                    : Colors.orange);
+      });
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("Add User")),
+      appBar: AppBar(title: const Text("Add User")),
       body: Padding(
-        padding: EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(16.0),
         child: Form(
           key: formKey,
           child: Column(
-            crossAxisAlignment:
-                CrossAxisAlignment.start, // Align error messages properly
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // Name Field
               TextFormField(
                 controller: nameController,
-                decoration: InputDecoration(labelText: 'Name'),
+                decoration: const InputDecoration(labelText: 'Name'),
+                onChanged: (value) {
+                  if (!nameStartedTyping && value.isNotEmpty) {
+                    setState(() {
+                      nameStartedTyping = true;
+                    });
+                  }
+                  clearValidationErrors();
+                },
                 validator: (value) {
+                  if (!nameStartedTyping) {
+                    return null; // Skip validation until typing starts
+                  }
                   if (value == null || value.trim().isEmpty) {
-                    return 'Please enter a name';
+                    return 'Name is required';
                   } else if (!alphabetRegex.hasMatch(value)) {
-                    return "Enter a valid name";
+                    return "Enter a valid name (only letters and spaces)";
                   }
                   return null;
                 },
               ),
-              SizedBox(height: 10),
+              const SizedBox(height: 10),
+
+              // Phone Number Field
               TextFormField(
                 controller: phoneNumberController,
-                decoration: InputDecoration(labelText: 'Phone Number'),
+                decoration: const InputDecoration(labelText: 'Phone Number'),
                 keyboardType: TextInputType.phone,
                 maxLength: 10,
                 onChanged: (value) {
-                  setState(() {
-                    phoneMessage =
-                        value.isNotEmpty
-                            ? "Entered ${value.length} out of 10 digits"
-                            : "";
-                    phoneMessageColor =
-                        value.length == 10 ? Colors.green : Colors.red;
-                  });
+                  if (!phoneNumberStartedTyping && value.isNotEmpty) {
+                    setState(() {
+                      phoneNumberStartedTyping = true;
+                    });
+                  }
+                  clearValidationErrors();
                 },
                 validator: (value) {
+                  if (!phoneNumberStartedTyping) return null;
                   if (value == null || value.isEmpty) {
-                    return 'Please enter a phone number';
-                  } else if (!phoneNumberRegex.hasMatch(value)) {
+                    return 'Phone Number is required';
+                  }
+                  if (!phoneNumberRegex.hasMatch(value)) {
                     return 'Enter a valid 10-digit phone number';
                   }
                   return null;
                 },
               ),
-              SizedBox(height: 5),
-              if (phoneMessage.isNotEmpty) // Show only once
-                Text(
-                  phoneMessage,
-                  style: TextStyle(
-                    color: phoneMessageColor,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              SizedBox(height: 20),
+              const SizedBox(height: 20),
+
+              // Add User Button
               Center(
                 child: ElevatedButton(
-                  onPressed: () async {
-                    if (formKey.currentState!.validate()) {
-                      final name = nameController.text.trim();
-                      final phoneNumber = phoneNumberController.text.trim();
-                      await ref
-                          .read(chitProvider.notifier)
-                          .addChit(name, phoneNumber);
-                
-                      // ignore: use_build_context_synchronously
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text('User added successfully!'),
-                          behavior: SnackBarBehavior.floating,
-                        ),
-                      );
-                
-                      Navigator.pop(context); // Go back after adding user
-                    }
-                  },
-                  child: Text(
-                    'Add User',
-                    style: TextStyle(
-                      color: const Color.fromARGB(255, 70, 149, 155),
-                    ),
+                onPressed: () async {
+  setState(() {
+    nameStartedTyping = true;
+    phoneNumberStartedTyping = true;
+  });
+
+  if (formKey.currentState!.validate()) {
+    final name = nameController.text.trim();
+    final phoneNumber = phoneNumberController.text.trim();
+
+    await ref.read(chitProvider.notifier).addChit(name, phoneNumber);
+
+    showOverlaySnackBar(context, "User added successfully!"); // Stacked Snackbar
+
+    // Clear input fields
+    nameController.clear();
+    phoneNumberController.clear();
+    setState(() {
+      nameStartedTyping = false;
+      phoneNumberStartedTyping = false;
+    });
+    formKey.currentState?.reset();
+
+    // Pop immediately
+    Navigator.pop(context);
+  }
+},
+
+                child: Text("Submit ",
+                    style: TextStyle(color: Color.fromARGB(255, 70, 149, 155)),
                   ),
-                ),
+                )
               ),
             ],
           ),

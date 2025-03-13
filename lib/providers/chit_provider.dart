@@ -2,13 +2,6 @@ import 'package:chit/models/chit_model.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-final chitProvider = StateNotifierProvider<ChitNotifier, List<Chit>>(
-  (ref) => ChitNotifier(),
-);
-final transactionProvider =
-    StateNotifierProvider<TransactionNotifier, List<ChitTransaction>>(
-      (ref) => TransactionNotifier(),
-    );
 
 class ChitNotifier extends StateNotifier<List<Chit>> {
   ChitNotifier() : super([]) {
@@ -42,12 +35,17 @@ class ChitNotifier extends StateNotifier<List<Chit>> {
     await saveCounter();
   }
 }
+
+final chitProvider = StateNotifierProvider<ChitNotifier, List<Chit>>(
+  (ref) => ChitNotifier(),
+);
+
 class TransactionNotifier extends StateNotifier<List<ChitTransaction>> {
   TransactionNotifier() : super([]) {
-    _loadTransactions();
+    loadTransactions();
   }
 
-  Future<void> _loadTransactions() async {
+  Future<void> loadTransactions() async {
     final prefs = await SharedPreferences.getInstance();
     final transactionsData = prefs.getStringList('transactions') ?? [];
 
@@ -57,7 +55,7 @@ class TransactionNotifier extends StateNotifier<List<ChitTransaction>> {
         }).toList();
   }
 
-  Future<void> _saveTransactions() async {
+  Future<void> saveTransactions() async {
     final prefs = await SharedPreferences.getInstance();
     final transactionsJson = state.map((t) => t.toJson()).toList();
     await prefs.setStringList('transactions', transactionsJson);
@@ -65,7 +63,7 @@ class TransactionNotifier extends StateNotifier<List<ChitTransaction>> {
 
   void addTransaction(ChitTransaction transaction) {
     state = [...state, transaction];
-    _saveTransactions(); // Save to SharedPreferences
+    saveTransactions(); // Save to SharedPreferences
   }
 
   List<ChitTransaction> getTransactionsByChitId(int chitId) {
@@ -79,4 +77,7 @@ class TransactionNotifier extends StateNotifier<List<ChitTransaction>> {
   }
 }
 
-
+final transactionProvider =
+    StateNotifierProvider<TransactionNotifier, List<ChitTransaction>>(
+      (ref) => TransactionNotifier(),
+    );

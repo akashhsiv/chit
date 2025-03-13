@@ -16,7 +16,15 @@ class _AddTransactionState extends ConsumerState<AddTransaction> {
   final TextEditingController amountController = TextEditingController();
   final TextEditingController descriptionController = TextEditingController();
   final RegExp numberRegex = RegExp(r'^\d+$'); // Validates only numbers
-  final _formKey = GlobalKey<FormState>(); // Form Key for validation
+  final formKey = GlobalKey<FormState>(); // Form Key for validation
+  void clearValidationErrors() {
+    if (formKey.currentState != null) {
+      formKey.currentState!.validate(); // Revalidate form on every input
+    }
+  }
+
+  bool amountEntered = false;
+  bool descriptionEntered = false;
 
   @override
   Widget build(BuildContext context) {
@@ -25,16 +33,29 @@ class _AddTransactionState extends ConsumerState<AddTransaction> {
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Form(
-          key: _formKey, // Attach form key
+          key: formKey,
           child: Column(
             children: [
               TextFormField(
                 controller: amountController,
                 decoration: const InputDecoration(hintText: "Amount"),
                 keyboardType: TextInputType.number,
+                maxLength: 9,
+                onChanged: (value) {
+                  if (!amountEntered && value.isNotEmpty) {
+                    setState(() {
+                      amountEntered = true;
+                    });
+                  }
+                  clearValidationErrors();
+                },
                 validator: (value) {
+                  if (!amountEntered) {
+                    return null;
+                  }
+
                   if (value == null || value.isEmpty) {
-                    return 'Enter a valid amount';
+                    return 'Enter a Amount';
                   } else if (!numberRegex.hasMatch(value)) {
                     return 'Amount must be a number';
                   }
@@ -50,9 +71,20 @@ class _AddTransactionState extends ConsumerState<AddTransaction> {
                   hintText: "Description",
                   hintMaxLines: 3,
                 ),
+                onChanged: (value) {
+                  if (!descriptionEntered && value.isNotEmpty) {
+                    setState(() {
+                      descriptionEntered = true;
+                    });
+                  }
+                  clearValidationErrors();
+                },
                 validator: (value) {
-                  if (value == null || value.trim().isEmpty) {
-                    return 'Enter a valid description';
+                  if (!descriptionEntered) {
+                    return null;
+                  }
+                  if (value == null || value.isEmpty) {
+                    return 'Enter a Description';
                   }
                   return null;
                 },
@@ -63,9 +95,16 @@ class _AddTransactionState extends ConsumerState<AddTransaction> {
       ),
       floatingActionButton: FloatingActionButton(
         tooltip: "Add Transaction",
-        onPressed: () {
-          if (_formKey.currentState!.validate()) {
-            final int? amount = int.tryParse(amountController.text);
+        backgroundColor: const Color.fromARGB(255, 29, 162, 160),
+
+          onPressed: () {
+          setState(() {
+            amountEntered = true;
+            descriptionEntered = true;
+          });
+
+          if (formKey.currentState!.validate()) {
+            final int? amount = int.tryParse(amountController.text.trim());
             final String description = descriptionController.text.trim();
 
             if (amount != null && description.isNotEmpty) {
@@ -79,11 +118,21 @@ class _AddTransactionState extends ConsumerState<AddTransaction> {
                       transactionDate: DateTime.now().toIso8601String(),
                     ),
                   );
+
+              // Clear input fields after successful submission
+              amountController.clear();
+              descriptionController.clear();
+              setState(() {
+                amountEntered = false;
+                descriptionEntered = false;
+              });
+
               Navigator.pop(context);
             }
           }
         },
-        child: const Icon(Icons.done_all_outlined),
+
+        child: const Icon(Icons.done_all_outlined, color: Colors.white),
       ),
     );
   }

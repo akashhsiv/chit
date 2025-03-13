@@ -67,7 +67,10 @@ class UserListPageState extends ConsumerState<UserListPage> {
           Expanded(
             child:
                 chits.isEmpty
-                    ? Center(child: Text("No users available."))
+                    ? Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Center(child: Text("No users available.")),
+                    )
                     : filteredChits.isEmpty
                     ? Center(child: Text("No results found for your search."))
                     : ListView.builder(
@@ -97,32 +100,39 @@ class UserListPageState extends ConsumerState<UserListPage> {
                                   ),
                                 ),
                               ),
-                              title: Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  SizedBox(
-                                    width: 150,
-                                    child: Text(
-                                      chit.customerName,
-                                      style: TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 19,
+                              title: Padding(
+                                padding: const EdgeInsets.only(right: 3),
+                                child: Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    SizedBox(
+                                      width: 150,
+                                      child: Text(
+                                        chit.customerName,
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 19,
+                                        ),
+                                        overflow: TextOverflow.ellipsis,
                                       ),
-                                      overflow: TextOverflow.ellipsis,
                                     ),
-                                  ),
-                                  Text(
-                                    DateFormat(
-                                      "MMM yyyy",
-                                    ).format(DateTime.parse(chit.createdAt)),
-                                    style: TextStyle(
-                                      color: Colors.blueGrey,
-                                      fontSize: 13,
+                                    Padding(
+                                      padding: const EdgeInsets.all(9.0),
+                                      child: Text(
+                                        DateFormat(
+                                          "MMM yyyy",
+                                        ).format(DateTime.parse(chit.createdAt)),
+                                        style: TextStyle(
+                                          color: Colors.blueGrey,
+                                          fontSize: 13,
+                                        ),
+                                      ),
                                     ),
-                                  ),
-                                ],
+                                  ],
+                                ),
                               ),
+                              contentPadding: EdgeInsets.only(left: 7),
                               subtitle: Text(
                                 chit.customerMobileNumber,
                                 style: TextStyle(fontSize: 14),
@@ -153,7 +163,11 @@ class UserListPageState extends ConsumerState<UserListPage> {
           Navigator.push(
             context,
             MaterialPageRoute(builder: (context) => AddUserPage()),
-          );
+          ).then((_) {
+            setState(() {
+              searchQuery = "";
+            });
+          });
         },
         child: Icon(Icons.person_add_alt_1_outlined, color: Colors.white),
       ),

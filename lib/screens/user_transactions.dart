@@ -62,7 +62,7 @@ class TransactionListPageState extends ConsumerState<TransactionListPage> {
         break;
     }
 
- return Scaffold(
+    return Scaffold(
       appBar: AppBar(
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -186,97 +186,110 @@ class TransactionListPageState extends ConsumerState<TransactionListPage> {
               child:
                   totalAmount == 0
                       ? SizedBox.shrink()
-                      : Row(
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        children: [
-                          Icon(
-                            Icons.account_balance_wallet,
-                            color: Colors.black,
-                          ),
-                          SizedBox(width: 5),
-                          Text(
-                            '₹$totalAmount spent in $selectedMonth',
-                            style: TextStyle(fontWeight: FontWeight.bold),
-                          ),
-                        ],
+                      : Padding(
+                        padding: const EdgeInsets.only(right: 6.0),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            SizedBox(width: 5),
+                            Text(
+                              '₹$totalAmount',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 22,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
             ),
           ),
           Expanded(
             child:
                 sortedTransactions.isEmpty
-                    ? Center(
-                      child: Text('No transactions found !'),
+                    ? Padding(
+                      padding: const EdgeInsets.only(top: 270),
+
+                      child: Text('No transactions found!'),
                     )
-                    : ListView.builder(
-                      itemCount: sortedTransactions.length,
-                      itemBuilder: (context, index) {
-                        final transaction = sortedTransactions[index];
-                        return Container(
-                          color: Colors.white,
-                          child: Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: ListTile(
-                              leading: Icon(
-                                Icons.attach_money,
-                                color: Colors.blue,
-                              ),
-                              title: Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text(
-                                    '₹${transaction.amount}',
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 18,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              subtitle: Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text(
-                                    transaction.description,
-                                    style: TextStyle(color: Colors.grey),
-                                  ),
-                                  Text(
-                                    DateFormat('dd/MM/yyyy hh:mm a').format(
-                                      DateTime.parse(
-                                        transaction.transactionDate,
+                    : Padding(
+                      padding: const EdgeInsets.only(top: 0),
+                      child: ListView.builder(
+                        itemCount: sortedTransactions.length,
+                        itemBuilder: (context, index) {
+                          final transaction = sortedTransactions[index];
+                          return Container(
+                            color: Colors.white,
+                            child: Padding(
+                              padding: const EdgeInsets.all(4),
+
+                              child: ListTile(
+                                title: Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                      '₹${transaction.amount}',
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 18,
                                       ),
                                     ),
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      color: Colors.blueGrey,
+                                    Text(
+                                      DateFormat('dd/MM/yyyy hh:mm a').format(
+                                        DateTime.parse(
+                                          transaction.transactionDate,
+                                        ),
+                                      ),
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: Colors.blueGrey,
+                                      ),
                                     ),
-                                  ),
-                                ],
+                                  ],
+                                ),
+                                subtitle: Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Flexible(
+                                      child: Text(
+                                        transaction.description,
+                                        style: TextStyle(color: Colors.grey),
+                                        maxLines: 2,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
                             ),
-                          ),
-                        );
-                      },
+                          );
+                        },
+                      ),
                     ),
           ),
         ],
       ),
       floatingActionButton: FloatingActionButton(
         backgroundColor: const Color.fromARGB(255, 29, 162, 160),
-        onPressed: () {
-          Navigator.push(
+        onPressed: () async {
+          await Navigator.push(
             context,
             MaterialPageRoute(
               builder: (context) => AddTransaction(chitId: widget.chitId),
             ),
           );
+
+          // Reset month filter to the current month after returning
+          setState(() {
+            selectedMonth = DateFormat('MMMM').format(DateTime.now());
+          });
         },
-        child: Icon(Icons.add_circle_outline, color: Colors.white),
+        child: Icon(Icons.add, color: Colors.white),
       ),
+
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
     );
-
- }
+  }
 }

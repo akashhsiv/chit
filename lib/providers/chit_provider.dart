@@ -12,26 +12,24 @@ final transactionProvider =
 
 class ChitNotifier extends StateNotifier<List<Chit>> {
   ChitNotifier() : super([]) {
-    _initCounter();
+    initCounter();
   }
 
   static int autoGenratedId = 0;
 
-  // Initialize counter at startup
-  Future<void> _initCounter() async {
+
+  Future<void>initCounter() async {
     final prefs = await SharedPreferences.getInstance();
     autoGenratedId = prefs.getInt('chit_global_counter') ?? 0;
   }
 
-  // Save the updated counter
-  Future<void> _saveCounter() async {
+  Future<void> saveCounter() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setInt('chit_global_counter', autoGenratedId);
   }
 
-  // Add a new chit with auto-generated ID
   Future<void> addChit(String customerName, String phoneNumber) async {
-    autoGenratedId++; // Increment counter
+    autoGenratedId++; 
     final newChit = Chit(
       id: autoGenratedId,
       customerName: customerName,
@@ -41,15 +39,33 @@ class ChitNotifier extends StateNotifier<List<Chit>> {
    
     state = [...state, newChit];
 
-    await _saveCounter();
+    await saveCounter();
   }
 }
-
 class TransactionNotifier extends StateNotifier<List<ChitTransaction>> {
-  TransactionNotifier() : super([]);
+  TransactionNotifier() : super([]) {
+    _loadTransactions();
+  }
+
+  Future<void> _loadTransactions() async {
+    final prefs = await SharedPreferences.getInstance();
+    final transactionsData = prefs.getStringList('transactions') ?? [];
+
+    state =
+        transactionsData.map((json) {
+          return ChitTransaction.fromJson(json);
+        }).toList();
+  }
+
+  Future<void> _saveTransactions() async {
+    final prefs = await SharedPreferences.getInstance();
+    final transactionsJson = state.map((t) => t.toJson()).toList();
+    await prefs.setStringList('transactions', transactionsJson);
+  }
 
   void addTransaction(ChitTransaction transaction) {
     state = [...state, transaction];
+    _saveTransactions(); // Save to SharedPreferences
   }
 
   List<ChitTransaction> getTransactionsByChitId(int chitId) {
@@ -62,3 +78,5 @@ class TransactionNotifier extends StateNotifier<List<ChitTransaction>> {
         .fold(0, (sum, transaction) => sum + transaction.amount);
   }
 }
+
+

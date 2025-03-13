@@ -1,9 +1,9 @@
-import 'package:chit/models/chit_model.dart';
-import 'package:chit/providers/chit_provider.dart';
-import 'package:chit/screens/add_transaction.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:chit/models/chit_model.dart';
+import 'package:chit/providers/chit_provider.dart';
+import 'package:chit/screens/add_transaction.dart';
 
 class TransactionListPage extends ConsumerStatefulWidget {
   final int chitId;
@@ -15,7 +15,8 @@ class TransactionListPage extends ConsumerStatefulWidget {
 }
 
 class TransactionListPageState extends ConsumerState<TransactionListPage> {
-  String filterType = 'newest'; // Default filter type
+  String filterType = 'newest';
+  String selectedMonth = DateFormat('MMMM').format(DateTime.now());
 
   @override
   Widget build(BuildContext context) {
@@ -33,11 +34,15 @@ class TransactionListPageState extends ConsumerState<TransactionListPage> {
             .where((t) => t.chitId == widget.chitId)
             .toList();
 
-    final totalAmount = transactions.fold(0, (sum, t) => sum + t.amount);
+    List<ChitTransaction> monthlyTransactions =
+        transactions.where((t) {
+          DateTime transactionDate = DateTime.parse(t.transactionDate);
+          return DateFormat('MMMM').format(transactionDate) == selectedMonth;
+        }).toList();
 
-    List<ChitTransaction> sortedTransactions = List.from(transactions);
+    final totalAmount = monthlyTransactions.fold(0, (sum, t) => sum + t.amount);
 
-    // Sorting based on filter type
+    List<ChitTransaction> sortedTransactions = List.from(monthlyTransactions);
     switch (filterType) {
       case 'newest':
         sortedTransactions.sort(
@@ -57,14 +62,14 @@ class TransactionListPageState extends ConsumerState<TransactionListPage> {
         break;
     }
 
-    return Scaffold(
+ return Scaffold(
       appBar: AppBar(
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
               chit.customerName,
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
             Text(
               chit.customerMobileNumber,
@@ -73,7 +78,42 @@ class TransactionListPageState extends ConsumerState<TransactionListPage> {
           ],
         ),
         actions: [
+          Container(
+            decoration: BoxDecoration(
+              color: const Color.fromARGB(0, 255, 255, 255),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: DropdownButtonHideUnderline(
+              child: DropdownButton<String>(
+                dropdownColor: const Color.fromARGB(255, 255, 254, 254),
+                value: selectedMonth,
+                onChanged: (String? newValue) {
+                  setState(() {
+                    selectedMonth = newValue!;
+                  });
+                },
+                items: List.generate(12, (index) {
+                  String month = DateFormat(
+                    'MMMM',
+                  ).format(DateTime(2025, index + 1, 1));
+                  return DropdownMenuItem(
+                    value: month,
+                    child: Text(
+                      month,
+                      style: TextStyle(
+                        color: const Color.fromARGB(255, 0, 0, 0),
+                      ),
+                    ),
+                  );
+                }),
+              ),
+            ),
+          ),
           PopupMenuButton<String>(
+            color: Colors.white,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
             onSelected: (value) {
               setState(() {
                 filterType = value;
@@ -81,15 +121,57 @@ class TransactionListPageState extends ConsumerState<TransactionListPage> {
             },
             itemBuilder:
                 (context) => [
-                  PopupMenuItem(value: 'newest', child: Text('Newest First')),
-                  PopupMenuItem(value: 'oldest', child: Text('Oldest First')),
+                  PopupMenuItem(
+                    value: 'newest',
+                    child: Row(
+                      children: [
+                        Icon(Icons.access_time, color: Colors.black),
+                        SizedBox(width: 8),
+                        Text(
+                          'Newest First',
+                          style: TextStyle(color: Colors.black),
+                        ),
+                      ],
+                    ),
+                  ),
+                  PopupMenuItem(
+                    value: 'oldest',
+                    child: Row(
+                      children: [
+                        Icon(Icons.history, color: Colors.black),
+                        SizedBox(width: 8),
+                        Text(
+                          'Oldest First',
+                          style: TextStyle(color: Colors.black),
+                        ),
+                      ],
+                    ),
+                  ),
                   PopupMenuItem(
                     value: 'highest',
-                    child: Text('Highest Amount'),
+                    child: Row(
+                      children: [
+                        Icon(Icons.trending_up, color: Colors.black),
+                        SizedBox(width: 8),
+                        Text(
+                          'Highest Amount',
+                          style: TextStyle(color: Colors.black),
+                        ),
+                      ],
+                    ),
                   ),
                   PopupMenuItem(
                     value: 'smallest',
-                    child: Text('Smallest Amount'),
+                    child: Row(
+                      children: [
+                        Icon(Icons.trending_down, color: Colors.black),
+                        SizedBox(width: 8),
+                        Text(
+                          'Smallest Amount',
+                          style: TextStyle(color: Colors.black),
+                        ),
+                      ],
+                    ),
                   ),
                 ],
           ),
@@ -98,47 +180,81 @@ class TransactionListPageState extends ConsumerState<TransactionListPage> {
       body: Column(
         children: [
           Padding(
-            padding: const EdgeInsets.all(16.0),
+            padding: EdgeInsets.all(10),
             child: Align(
               alignment: Alignment.topRight,
               child:
                   totalAmount == 0
                       ? SizedBox.shrink()
-                      : 
-                         Column(
-                          mainAxisAlignment: MainAxisAlignment.end,
-                          children: [
-                            Text(
-                              'Total Amount: ₹$totalAmount',
-                              style: TextStyle(
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ],
-                        ),
+                      : Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          Icon(
+                            Icons.account_balance_wallet,
+                            color: Colors.black,
+                          ),
+                          SizedBox(width: 5),
+                          Text(
+                            '₹$totalAmount spent in $selectedMonth',
+                            style: TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                        ],
+                      ),
             ),
           ),
           Expanded(
             child:
-                transactions.isEmpty
-                    ? Center(child: Text('No transactions found!'))
+                sortedTransactions.isEmpty
+                    ? Center(
+                      child: Text('No transactions found !'),
+                    )
                     : ListView.builder(
                       itemCount: sortedTransactions.length,
                       itemBuilder: (context, index) {
                         final transaction = sortedTransactions[index];
-                        return Card(
-                          color: const Color.fromARGB(255, 205, 179, 221),
-                          child: ListTile(
-                            title: Text('Amount: ₹${transaction.amount}'),
-                            subtitle: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text('Description: ${transaction.description}'),
-                                Text(
-                                  'Date: ${DateFormat('dd/MM/yyyy').format(DateTime.parse(transaction.transactionDate))}',
-                                ),
-                              ],
+                        return Container(
+                          color: Colors.white,
+                          child: Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: ListTile(
+                              leading: Icon(
+                                Icons.attach_money,
+                                color: Colors.blue,
+                              ),
+                              title: Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    '₹${transaction.amount}',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 18,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              subtitle: Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    transaction.description,
+                                    style: TextStyle(color: Colors.grey),
+                                  ),
+                                  Text(
+                                    DateFormat('dd/MM/yyyy hh:mm a').format(
+                                      DateTime.parse(
+                                        transaction.transactionDate,
+                                      ),
+                                    ),
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: Colors.blueGrey,
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
                         );
@@ -148,6 +264,7 @@ class TransactionListPageState extends ConsumerState<TransactionListPage> {
         ],
       ),
       floatingActionButton: FloatingActionButton(
+        backgroundColor: const Color.fromARGB(255, 29, 162, 160),
         onPressed: () {
           Navigator.push(
             context,
@@ -156,8 +273,10 @@ class TransactionListPageState extends ConsumerState<TransactionListPage> {
             ),
           );
         },
-        child: Icon(Icons.playlist_add_outlined),
+        child: Icon(Icons.add_circle_outline, color: Colors.white),
       ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
     );
-  }
+
+ }
 }

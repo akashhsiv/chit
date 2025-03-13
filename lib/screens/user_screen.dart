@@ -1,13 +1,12 @@
-// ignore_for_file: use_build_context_synchronously
+// ignore_for_file: use_build_context_synchronously, unused_local_variable, deprecated_member_use
 
-import 'dart:math';
-
+import 'dart:math' as math;
+import 'package:intl/intl.dart';
 import 'package:chit/providers/chit_provider.dart';
 import 'package:chit/screens/add_user.dart';
 import 'package:chit/screens/user_transactions.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
 
 class UserListPage extends ConsumerStatefulWidget {
   const UserListPage({super.key});
@@ -18,6 +17,13 @@ class UserListPage extends ConsumerStatefulWidget {
 
 class UserListPageState extends ConsumerState<UserListPage> {
   String searchQuery = '';
+  late Map<int, Color> colorMap;
+
+  @override
+  void initState() {
+    super.initState();
+    colorMap = {};
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -39,79 +45,100 @@ class UserListPageState extends ConsumerState<UserListPage> {
         }).toList();
 
     return Scaffold(
-      appBar: AppBar(title: Text('Chit Users')),
+      appBar: AppBar(title: Text('Chit Customers')),
       body: Column(
         children: [
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: TextField(
-              decoration: InputDecoration(
-                hoverColor: const Color.fromARGB(137, 76, 0, 0),
-                labelText: 'Search',
-                prefixIcon: Icon(Icons.search),
-                border: OutlineInputBorder(),
+          if (chits.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: TextField(
+                decoration: InputDecoration(
+                  labelText: 'Search',
+                  prefixIcon: Icon(Icons.search),
+                  border: OutlineInputBorder(),
+                ),
+                onChanged: (value) {
+                  setState(() {
+                    searchQuery = value;
+                  });
+                },
               ),
-              onChanged: (value) {
-                setState(() {
-                  searchQuery = value;
-                });
-              },
             ),
-          ),
           Expanded(
             child:
-                filteredChits.isEmpty
-                    ? Center(
-                      child: Text(
-                        'No customers exist, please add one.',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    )
+                chits.isEmpty
+                    ? Center(child: Text("No users available."))
+                    : filteredChits.isEmpty
+                    ? Center(child: Text("No results found for your search."))
                     : ListView.builder(
                       itemCount: filteredChits.length,
                       itemBuilder: (context, index) {
                         final chit = filteredChits[index];
-                        final transactions = ref
-                            .read(transactionProvider.notifier)
-                            .getTransactionsByChitId(chit.id);
-                        final lastTransaction =
-                            transactions.isNotEmpty ? transactions.last : null;
 
-                        return Card(
-                          child: ListTile(
-                            leading: CircleAvatar(
-                              backgroundColor:
-                                  Colors.primaries[Random().nextInt(
-                                    Colors.primaries.length,
-                                  )],
-                              child: Text(
-                                chit.id.toString(),
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold,
+                        // Assign color once and store it
+                        colorMap.putIfAbsent(
+                          chit.id,
+                          () => Color(
+                            (math.Random().nextDouble() * 0xFFFFFF).toInt(),
+                          ).withOpacity(1.0),
+                        );
+
+                        return Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 10),
+                          child: Card(
+                            child: ListTile(
+                              leading: CircleAvatar(
+                                backgroundColor: colorMap[chit.id]!,
+                                child: Text(
+                                  chit.id.toString(),
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                 ),
                               ),
+                              title: Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  SizedBox(
+                                    width: 150,
+                                    child: Text(
+                                      chit.customerName,
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 19,
+                                      ),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                  Text(
+                                    DateFormat(
+                                      "MMM yyyy",
+                                    ).format(DateTime.parse(chit.createdAt)),
+                                    style: TextStyle(
+                                      color: Colors.blueGrey,
+                                      fontSize: 13,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              subtitle: Text(
+                                chit.customerMobileNumber,
+                                style: TextStyle(fontSize: 14),
+                              ),
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder:
+                                        (context) => TransactionListPage(
+                                          chitId: chit.id,
+                                        ),
+                                  ),
+                                );
+                              },
                             ),
-                            title: Text(chit.customerName),
-                            subtitle:
-                                lastTransaction != null
-                                    ? Text(
-                                      'Last Transaction:Rs ${lastTransaction.amount} on \n${DateFormat('dd/MM/yyyy').format(DateTime.parse(lastTransaction.transactionDate))}',
-                                    )
-                                    : Text('No transactions yet'),
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder:
-                                      (context) =>
-                                          TransactionListPage(chitId: chit.id),
-                                ),
-                              );
-                            },
                           ),
                         );
                       },
@@ -120,6 +147,7 @@ class UserListPageState extends ConsumerState<UserListPage> {
         ],
       ),
       floatingActionButton: FloatingActionButton(
+        backgroundColor: Color.fromARGB(255, 51, 178, 176),
         tooltip: "Add User",
         onPressed: () {
           Navigator.push(
@@ -127,7 +155,7 @@ class UserListPageState extends ConsumerState<UserListPage> {
             MaterialPageRoute(builder: (context) => AddUserPage()),
           );
         },
-        child: Icon(Icons.person_add_alt_1_outlined),
+        child: Icon(Icons.person_add_alt_1_outlined, color: Colors.white),
       ),
     );
   }

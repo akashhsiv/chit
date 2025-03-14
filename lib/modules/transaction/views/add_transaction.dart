@@ -2,6 +2,7 @@ import 'package:chit/modules/transaction/models/transaction.dart';
 import 'package:chit/modules/transaction/providers/transaction_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 class AddTransaction extends ConsumerStatefulWidget {
   final int chitId;
@@ -98,11 +99,6 @@ class _AddTransactionState extends ConsumerState<AddTransaction> {
         backgroundColor: const Color.fromARGB(255, 29, 162, 160),
 
         onPressed: () {
-          setState(() {
-            amountEntered = true;
-            descriptionEntered = true;
-          });
-
           if (formKey.currentState!.validate()) {
             final int? amount = int.tryParse(amountController.text.trim());
             final String description = descriptionController.text.trim();
@@ -119,19 +115,13 @@ class _AddTransactionState extends ConsumerState<AddTransaction> {
                     ),
                   );
 
-              // Clear input fields after successful submission
               amountController.clear();
               descriptionController.clear();
-              setState(() {
-                amountEntered = false;
-                descriptionEntered = false;
-              });
 
-              Navigator.pop(context);
+              context.pop(); // Go back to transaction list
             }
           }
         },
-
         child: const Icon(Icons.done_all_outlined, color: Colors.white),
       ),
     );

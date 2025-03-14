@@ -1,11 +1,11 @@
 // ignore_for_file: use_build_context_synchronously, unused_local_variable, deprecated_member_use
 
 import 'package:chit/modules/chit/providers/chit_provider.dart';
-import 'package:chit/modules/chit/views/chit_list_view/chit_list.dart';
+import 'package:chit/modules/chit/views/chit_list_view/chit_user_list.dart';
 import 'package:chit/modules/transaction/providers/transaction_provider.dart';
-import 'package:chit/modules/chit/views/add_user.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 class ChitListPage extends ConsumerStatefulWidget {
   const ChitListPage({super.key});
@@ -69,12 +69,15 @@ class ChitListPageState extends ConsumerState<ChitListPage> {
       floatingActionButton: FloatingActionButton(
         backgroundColor: const Color.fromARGB(255, 51, 178, 176),
         tooltip: "Add User",
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const AddUserPage()),
-          ).then((_) => setState(() => searchQuery = ""));
+        onPressed: () async {
+          await GoRouter.of(context).push('/user/add');
+
+          if (!context.mounted) {
+            return; // Prevents setState if widget is disposed
+          }
+          setState(() => searchQuery = "");
         },
+
         child: const Icon(Icons.person_add_alt_1_outlined, color: Colors.white),
       ),
     );

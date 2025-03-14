@@ -1,12 +1,12 @@
 import 'package:chit/modules/transaction/views/transaction_list/transaction_item.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:chit/modules/chit/models/chit.dart';
 import 'package:chit/modules/chit/providers/chit_provider.dart';
 import 'package:chit/modules/transaction/models/transaction.dart';
 import 'package:chit/modules/transaction/providers/transaction_provider.dart';
-import 'package:chit/modules/transaction/views/add_transaction.dart';
 
 class TransactionListPage extends ConsumerStatefulWidget {
   final int chitId;
@@ -146,21 +146,28 @@ class TransactionListPageState extends ConsumerState<TransactionListPage> {
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () async {
-          await Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => AddTransaction(chitId: widget.chitId),
-            ),
-          );
-          setState(() {
-            selectedMonth = DateFormat('MMMM').format(DateTime.now());
-          });
-        },
-        backgroundColor: const Color.fromARGB(255, 51, 178, 176),
-        child: Icon(Icons.add),
+      floatingActionButton: Row(
+        mainAxisAlignment: MainAxisAlignment.end, // Align buttons to the right
+        children: [
+         
+          FloatingActionButton(
+            heroTag: 2,
+            onPressed: () async {
+              GoRouter.of(context).pushNamed(
+                'addTransaction',
+                pathParameters: {'chitId': chit.id.toString()},
+              );
+            
+              setState(() {
+                selectedMonth = DateFormat('MMMM').format(DateTime.now());
+              });
+            },
+            backgroundColor: const Color.fromARGB(149, 51, 178, 176),
+            child: const Icon(Icons.add),
+          ),
+        ],
       ),
+
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
     );
   }

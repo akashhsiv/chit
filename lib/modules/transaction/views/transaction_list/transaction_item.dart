@@ -19,7 +19,7 @@ class TransactionListView extends StatelessWidget {
         final transaction = transactions[index];
         return Padding(
           padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
-          child: Card(
+          
             child: ListTile(
               title: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -43,7 +43,7 @@ class TransactionListView extends StatelessWidget {
                 overflow: TextOverflow.ellipsis,
               ),
             ),
-          ),
+        
         );
       },
     );

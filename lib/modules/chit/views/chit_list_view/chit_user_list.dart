@@ -2,8 +2,8 @@
 
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
-import 'package:chit/modules/transaction/views/transaction_list_view.dart';
 
 class UserListView extends StatelessWidget {
   final List<dynamic> filteredChits;
@@ -49,7 +49,7 @@ class UserListView extends StatelessWidget {
                       width: 150,
                       child: Text(
                         chit.customerName,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 19,
                         ),
@@ -77,13 +77,12 @@ class UserListView extends StatelessWidget {
                 style: const TextStyle(fontSize: 14),
               ),
               onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => TransactionListPage(chitId: chit.id),
-                  ),
-                );
-              },
+  context.pushNamed(
+    'transactions',
+    pathParameters: {'chitId': chit.id.toString()},
+  );
+},
+
             ),
           ),
         );

@@ -6,6 +6,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class AddUserPage extends ConsumerStatefulWidget {
   const AddUserPage({super.key});
+  
+
 
   @override
   ConsumerState<AddUserPage> createState() => _AddUserPageState();
@@ -67,7 +69,6 @@ class _AddUserPageState extends ConsumerState<AddUserPage> {
       overlayEntry.remove();
     });
   }
-
 
   @override
   void initState() {
@@ -151,37 +152,43 @@ class _AddUserPageState extends ConsumerState<AddUserPage> {
               // Add User Button
               Center(
                 child: ElevatedButton(
-                onPressed: () async {
-  setState(() {
-    nameStartedTyping = true;
-    phoneNumberStartedTyping = true;
-  });
+                  onPressed: () async {
+                    setState(() {
+                      nameStartedTyping = true;
+                      phoneNumberStartedTyping = true;
+                    });
 
-  if (formKey.currentState!.validate()) {
-    final name = nameController.text.trim();
-    final phoneNumber = phoneNumberController.text.trim();
+                    if (formKey.currentState!.validate()) {
+                      final name = nameController.text.trim();
+                      final phoneNumber = phoneNumberController.text.trim();
 
-    await ref.read(chitProvider.notifier).addChit(name, phoneNumber);
+                      await ref
+                          .read(chitProvider.notifier)
+                          .addChit(name, phoneNumber);
 
-    showOverlaySnackBar(context, "User added successfully!"); // Stacked Snackbar
+                      showOverlaySnackBar(
+                        context,
+                        "User added successfully!",
+                      ); // Stacked Snackbar
 
-    // Clear input fields
-    nameController.clear();
-    phoneNumberController.clear();
-    setState(() {
-      nameStartedTyping = false;
-      phoneNumberStartedTyping = false;
-    });
-    formKey.currentState?.reset();
+                      // Clear input fields
+                      nameController.clear();
+                      phoneNumberController.clear();
+                      setState(() {
+                        nameStartedTyping = false;
+                        phoneNumberStartedTyping = false;
+                      });
+                      formKey.currentState?.reset();
 
-    // Pop immediately
-    Navigator.pop(context);
-  }
-},
-                child: Text("Submit ",
+                      // Pop immediately
+                      Navigator.pop(context);
+                    }
+                  },
+                  child: Text(
+                    "Submit ",
                     style: TextStyle(color: Color.fromARGB(255, 70, 149, 155)),
                   ),
-                )
+                ),
               ),
             ],
           ),

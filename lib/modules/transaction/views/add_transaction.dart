@@ -1,5 +1,5 @@
-import 'package:chit/models/chit_model.dart';
-import 'package:chit/providers/chit_provider.dart';
+import 'package:chit/modules/transaction/models/transaction.dart';
+import 'package:chit/modules/transaction/providers/transaction_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -97,7 +97,7 @@ class _AddTransactionState extends ConsumerState<AddTransaction> {
         tooltip: "Add Transaction",
         backgroundColor: const Color.fromARGB(255, 29, 162, 160),
 
-          onPressed: () {
+        onPressed: () {
           setState(() {
             amountEntered = true;
             descriptionEntered = true;

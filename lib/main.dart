@@ -1,4 +1,4 @@
-import 'package:chit/screens/user_screen.dart';
+import 'package:chit/layout/scafold_home.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -18,7 +18,7 @@ class MyApp extends StatelessWidget {
         scaffoldBackgroundColor: Colors.white,
         colorScheme: ColorScheme.light(surface: Colors.white),
       ),
-      home: UserListPage(),
+      home: ScafoldHome(),
     );
   }
 }

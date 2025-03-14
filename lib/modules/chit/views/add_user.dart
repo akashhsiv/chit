@@ -1,6 +1,6 @@
 // ignore_for_file: use_build_context_synchronously
 
-import 'package:chit/providers/chit_provider.dart';
+import 'package:chit/modules/chit/providers/chit_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -178,7 +178,6 @@ class _AddUserPageState extends ConsumerState<AddUserPage> {
     Navigator.pop(context);
   }
 },
-
                 child: Text("Submit ",
                     style: TextStyle(color: Color.fromARGB(255, 70, 149, 155)),
                   ),
